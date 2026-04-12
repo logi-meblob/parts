@@ -8,45 +8,68 @@
     <style>
         .modal-active { overflow: hidden; }
         .product-img { width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 12px; }
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1em; }
     </style>
 </head>
 <body class="bg-slate-50 p-4 md:p-8 text-slate-800 font-sans">
 
-    <div class="max-w-4xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200 gap-4">
-            <div>
-                <h1 class="text-2xl font-black text-slate-900">Katalog Produktów</h1>
-                <div id="statusInfo" class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 bg-blue-50 px-3 py-1 rounded-full inline-block">
-                    Wczytywanie...
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl font-black text-slate-900">Katalog Produktów</h1>
+                    <div id="statusInfo" class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 bg-blue-50 px-3 py-1 rounded-full inline-block">
+                        Wczytywanie...
+                    </div>
                 </div>
             </div>
-            <div class="w-full md:w-64">
-                <input type="text" id="searchInput" oninput="filterTable()" placeholder="Szukaj SKU lub nazwy..." 
-                    class="w-full border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Produkt</label>
+                    <select id="productSelect" onchange="filterTable()" 
+                        class="w-full border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition text-sm">
+                        <option value="">Wszystkie produkty</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Kolor</label>
+                    <select id="colorSelect" onchange="filterTable()" 
+                        class="w-full border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition text-sm">
+                        <option value="">Wszystkie kolory</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Szukaj frazy</label>
+                    <input type="text" id="searchInput" oninput="filterTable()" placeholder="SKU lub nazwa części..." 
+                        class="w-full border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 transition text-sm">
+                </div>
             </div>
         </div>
 
         <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50/50 border-b border-slate-100 text-[11px] uppercase font-black text-slate-400 tracking-wider">
-                        <th class="p-5 cursor-pointer hover:text-blue-600 transition" onclick="sortBySKU()">
-                            SKU <span id="sortIcon">↕</span>
-                        </th>
-                        <th class="p-5">Nazwa produktu</th>
-                        <th class="p-5 text-center w-24">Podgląd</th>
-                    </tr>
-                </thead>
-                <tbody id="productTable" class="divide-y divide-slate-50">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100 text-[11px] uppercase font-black text-slate-400 tracking-wider">
+                            <th class="p-5 cursor-pointer hover:text-blue-600 transition w-32" onclick="sortBySKU()">
+                                SKU <span id="sortIcon">↕</span>
+                            </th>
+                            <th class="p-5">Pełna nazwa z systemu</th>
+                            <th class="p-5">Kolor</th>
+                            <th class="p-5 text-center w-24">Podgląd</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTable" class="divide-y divide-slate-50">
                     </tbody>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
 
     <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden items-center justify-center z-50 p-4" onclick="if(event.target == this) closeModal()">
         <div class="bg-white w-full max-w-lg rounded-[40px] p-8 relative shadow-2xl">
             <button class="absolute top-6 right-8 text-4xl font-light text-slate-300 hover:text-slate-600 transition" onclick="closeModal()">&times;</button>
-            
             <div id="modalContent" class="text-center">
                 <div class="bg-slate-100 rounded-3xl p-4 mb-6">
                     <img id="mImg" src="" alt="Produkt" class="product-img mx-auto shadow-sm">
@@ -61,7 +84,7 @@
         const CSV_FILE = "produkty.csv"; 
         const FOTO_PATH = "foto/";       
         let rawData = []; 
-        let skuAsc = true; // Kierunek sortowania
+        let skuAsc = true;
 
         async function init() {
             const status = document.getElementById('statusInfo');
@@ -72,6 +95,7 @@
                 const text = await response.text();
                 rawData = parseCSV(text);
                 
+                populateFilters(rawData);
                 render(rawData);
                 
                 status.innerText = "Ilość pozycji: " + rawData.length;
@@ -96,30 +120,64 @@
             });
         }
 
-        // FUNKCJA SORTOWANIA
+        function populateFilters(data) {
+            const pSelect = document.getElementById('productSelect');
+            const cSelect = document.getElementById('colorSelect');
+
+            // Unikalne Produkty
+            const products = [...new Set(data.map(item => item.Produkt).filter(Boolean))].sort();
+            products.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                pSelect.appendChild(opt);
+            });
+
+            // Unikalne Pojedyncze Kolory (obsługa kolorów łączonych przez /)
+            let allColors = new Set();
+            data.forEach(item => {
+                if (item.Kolor) {
+                    // Rozbijamy kolory typu "Grey/Dark Grey" na osobne składniki
+                    item.Kolor.split('/').forEach(c => allColors.add(c.trim()));
+                }
+            });
+            
+            const sortedColors = Array.from(allColors).sort();
+            sortedColors.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                cSelect.appendChild(opt);
+            });
+        }
+
         function sortBySKU() {
             skuAsc = !skuAsc;
             document.getElementById('sortIcon').innerText = skuAsc ? "↑" : "↓";
-            
             rawData.sort((a, b) => {
-                const skuA = (a.SKU || "").toString().toLowerCase();
-                const skuB = (b.SKU || "").toString().toLowerCase();
-                
-                // Używamy localeCompare dla poprawnego sortowania tekstowo-liczbowego
+                const skuA = (a.SKU || "").toString();
+                const skuB = (b.SKU || "").toString();
                 return skuAsc 
                     ? skuA.localeCompare(skuB, undefined, {numeric: true}) 
                     : skuB.localeCompare(skuA, undefined, {numeric: true});
             });
-            
-            filterTable(); // Wywołujemy filtr, aby odświeżyć tabelę z zachowaniem wyszukiwania
+            filterTable();
         }
 
         function render(data) {
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = data.map(p => `
                 <tr class="hover:bg-blue-50/30 transition-colors group">
-                    <td class="p-5 font-mono text-sm font-bold text-slate-500">${p.SKU || '---'}</td>
-                    <td class="p-5 font-semibold text-slate-800">${p.Nazwa || 'Brak nazwy'}</td>
+                    <td class="p-5 font-mono text-xs font-bold text-slate-500">${p.SKU || '---'}</td>
+                    <td class="p-5 font-semibold text-slate-800 text-sm">
+                        <div class="text-[10px] text-blue-500 uppercase font-black mb-1">${p.Produkt || ''}</div>
+                        ${p.Nazwa || 'Brak nazwy'}
+                    </td>
+                    <td class="p-5">
+                        <span class="text-xs bg-slate-100 px-2 py-1 rounded-md text-slate-600 border border-slate-200">
+                            ${p.Kolor || '---'}
+                        </span>
+                    </td>
                     <td class="p-5 text-center">
                         <button onclick="openModal('${p.SKU}')" 
                             class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center mx-auto shadow-sm">
@@ -132,12 +190,23 @@
 
         function filterTable() {
             const txt = document.getElementById('searchInput').value.toLowerCase();
+            const productVal = document.getElementById('productSelect').value;
+            const colorVal = document.getElementById('colorSelect').value;
+
             const filtered = rawData.filter(p => {
-                const skuMatch = (p.SKU || '').toLowerCase().includes(txt);
-                const nameMatch = (p.Nazwa || '').toLowerCase().includes(txt);
-                return skuMatch || nameMatch;
+                const matchesText = (p.SKU || '').toLowerCase().includes(txt) || 
+                                    (p.Nazwa || '').toLowerCase().includes(txt);
+                
+                const matchesProduct = productVal === "" || p.Produkt === productVal;
+
+                // Logika "includes" pozwala znaleźć np. "Anthracite" w "Grey/Anthracite"
+                const matchesColor = colorVal === "" || (p.Kolor && p.Kolor.toLowerCase().includes(colorVal.toLowerCase()));
+
+                return matchesText && matchesProduct && matchesColor;
             });
+
             render(filtered);
+            document.getElementById('statusInfo').innerText = "Wyniki: " + filtered.length;
         }
 
         function openModal(sku) {
