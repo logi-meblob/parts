@@ -8,7 +8,6 @@
     <style>
         .modal-active { overflow: hidden; }
         .product-img { width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 12px; }
-        /* Styl dla selectów, aby wyglądały nowocześnie */
         select { 
             appearance: none; 
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
@@ -24,8 +23,8 @@
         <div class="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 class="text-2xl font-black text-slate-900">Katalog Produktów</h1>
-                    <div id="statusInfo" class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 bg-blue-50 px-3 py-1 rounded-full inline-block">
+                    <h1 class="text-3xl font-black text-[#1e3a8a]">Katalog Produktów</h1>
+                    <div id="statusInfo" class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-2 bg-green-50 px-3 py-1 rounded-full inline-block">
                         Wczytywanie...
                     </div>
                 </div>
@@ -62,7 +61,7 @@
                             <th class="p-5 w-40">
                                 <div class="flex items-center gap-2">
                                     <span>SKU</span>
-                                    <button onclick="sortBySKU()" class="w-6 h-6 rounded-md bg-slate-900 text-white flex items-center justify-center shadow-md hover:bg-slate-700 transition">
+                                    <button onclick="sortBySKU()" class="w-6 h-6 rounded-md bg-[#1e3a8a] text-white flex items-center justify-center shadow-md hover:bg-blue-800 transition">
                                         <span id="sortIcon" class="text-xs">↕</span>
                                     </button>
                                 </div>
@@ -86,7 +85,7 @@
                 <div class="bg-slate-100 rounded-3xl p-4 mb-6">
                     <img id="mImg" src="" alt="Produkt" class="product-img mx-auto shadow-sm">
                 </div>
-                <h2 id="mSku" class="text-sm font-black text-blue-600 uppercase tracking-widest mb-2"></h2>
+                <h2 id="mSku" class="text-sm font-black text-[#1e3a8a] uppercase tracking-widest mb-2"></h2>
                 <h3 id="mName" class="text-2xl font-bold text-slate-900 leading-tight"></h3>
             </div>
         </div>
@@ -98,7 +97,6 @@
         let rawData = []; 
         let skuAsc = true;
 
-        // MAPA KOLORÓW - Tutaj definiujesz kolory tła i tekstu dla etykiet
         const COLOR_MAP = {
             'Natural': { bg: '#F5F5DC', text: '#454530' },
             'Brown': { bg: '#795548', text: '#ffffff' },
@@ -116,20 +114,14 @@
             try {
                 const response = await fetch(CSV_FILE + '?v=' + Date.now());
                 if (!response.ok) throw new Error("Nie znaleziono pliku " + CSV_FILE);
-                
                 const text = await response.text();
                 rawData = parseCSV(text);
-                
                 populateFilters(rawData);
                 render(rawData);
-                
                 status.innerText = "Ilość pozycji: " + rawData.length;
-                status.classList.replace('text-blue-600', 'text-green-600');
-                status.classList.replace('bg-blue-50', 'bg-green-50');
             } catch (err) {
                 status.innerText = "BŁĄD: " + err.message;
-                status.classList.replace('bg-blue-50', 'bg-red-50');
-                status.classList.replace('text-blue-600', 'text-red-600');
+                status.className = "text-[10px] font-bold text-red-600 uppercase tracking-widest mt-2 bg-red-50 px-3 py-1 rounded-full inline-block";
             }
         }
 
@@ -148,21 +140,18 @@
         function populateFilters(data) {
             const pSelect = document.getElementById('productSelect');
             const cSelect = document.getElementById('colorSelect');
-
             const products = [...new Set(data.map(item => item.Produkt).filter(Boolean))].sort();
             products.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p; opt.textContent = p;
                 pSelect.appendChild(opt);
             });
-
             let allColors = new Set();
             data.forEach(item => {
                 if (item.Kolor) {
                     item.Kolor.split('/').forEach(c => allColors.add(c.trim()));
                 }
             });
-            
             const sortedColors = Array.from(allColors).sort();
             sortedColors.forEach(c => {
                 const opt = document.createElement('option');
@@ -188,13 +177,12 @@
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = data.map(p => {
                 const colorVal = p.Kolor || '';
-                // Jeśli mamy kolor łączony np "Brown/Natural", bierzemy pierwszy człon do stylizacji tła
                 const mainColor = colorVal.split('/')[0].trim();
                 const style = COLOR_MAP[mainColor] || { bg: '#f1f5f9', text: '#64748b' };
 
                 return `
                     <tr class="hover:bg-blue-50/30 transition-colors group">
-                        <td class="p-5 font-mono text-base font-extrabold text-slate-900">${p.SKU || '---'}</td>
+                        <td class="p-5 font-mono text-lg font-black text-[#1e3a8a] tracking-tight">${p.SKU || '---'}</td>
                         <td class="p-5 font-semibold text-slate-800 text-sm">
                             <div class="text-[10px] text-blue-500 uppercase font-black mb-1">${p.Produkt || ''}</div>
                             ${p.Nazwa || 'Brak nazwy'}
@@ -228,9 +216,8 @@
                 const matchesColor = colorVal === "" || (p.Kolor && p.Kolor.toLowerCase().includes(colorVal.toLowerCase()));
                 return matchesText && matchesProduct && matchesColor;
             });
-
             render(filtered);
-            document.getElementById('statusInfo').innerText = "Wyniki: " + filtered.length;
+            document.getElementById('statusInfo').innerText = "Ilość pozycji: " + filtered.length;
         }
 
         function openModal(sku) {
