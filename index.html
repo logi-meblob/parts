@@ -8,7 +8,14 @@
     <style>
         .modal-active { overflow: hidden; }
         .product-img { width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 12px; }
-        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1em; }
+        /* Styl dla selectów, aby wyglądały nowocześnie */
+        select { 
+            appearance: none; 
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
+            background-repeat: no-repeat; 
+            background-position: right 0.7rem center; 
+            background-size: 1em; 
+        }
     </style>
 </head>
 <body class="bg-slate-50 p-4 md:p-8 text-slate-800 font-sans">
@@ -91,6 +98,19 @@
         let rawData = []; 
         let skuAsc = true;
 
+        // MAPA KOLORÓW - Tutaj definiujesz kolory tła i tekstu dla etykiet
+        const COLOR_MAP = {
+            'Natural': { bg: '#F5F5DC', text: '#454530' },
+            'Brown': { bg: '#795548', text: '#ffffff' },
+            'Anthracite': { bg: '#2d3436', text: '#ffffff' },
+            'Antracite': { bg: '#2d3436', text: '#ffffff' },
+            'Grey': { bg: '#b2bec3', text: '#2d3436' },
+            'DarkGrey': { bg: '#636e72', text: '#ffffff' },
+            'Dark Grey': { bg: '#636e72', text: '#ffffff' },
+            'Black': { bg: '#000000', text: '#ffffff' },
+            'White': { bg: '#ffffff', text: '#000000' }
+        };
+
         async function init() {
             const status = document.getElementById('statusInfo');
             try {
@@ -132,8 +152,7 @@
             const products = [...new Set(data.map(item => item.Produkt).filter(Boolean))].sort();
             products.forEach(p => {
                 const opt = document.createElement('option');
-                opt.value = p;
-                opt.textContent = p;
+                opt.value = p; opt.textContent = p;
                 pSelect.appendChild(opt);
             });
 
@@ -147,18 +166,14 @@
             const sortedColors = Array.from(allColors).sort();
             sortedColors.forEach(c => {
                 const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
+                opt.value = c; opt.textContent = c;
                 cSelect.appendChild(opt);
             });
         }
 
         function sortBySKU() {
             skuAsc = !skuAsc;
-            const sortIcon = document.getElementById('sortIcon');
-            // Zmiana ikony na strzałkę góra/dół
-            sortIcon.innerText = skuAsc ? "↑" : "↓";
-            
+            document.getElementById('sortIcon').innerText = skuAsc ? "↑" : "↓";
             rawData.sort((a, b) => {
                 const skuA = (a.SKU || "").toString();
                 const skuB = (b.SKU || "").toString();
@@ -171,26 +186,34 @@
 
         function render(data) {
             const tbody = document.getElementById('productTable');
-            tbody.innerHTML = data.map(p => `
-                <tr class="hover:bg-blue-50/30 transition-colors group">
-                    <td class="p-5 font-mono text-base font-extrabold text-slate-900">${p.SKU || '---'}</td>
-                    <td class="p-5 font-semibold text-slate-800 text-sm">
-                        <div class="text-[10px] text-blue-500 uppercase font-black mb-1">${p.Produkt || ''}</div>
-                        ${p.Nazwa || 'Brak nazwy'}
-                    </td>
-                    <td class="p-5">
-                        <span class="text-xs bg-slate-100 px-2 py-1 rounded-md text-slate-600 border border-slate-200">
-                            ${p.Kolor || '---'}
-                        </span>
-                    </td>
-                    <td class="p-5 text-center">
-                        <button onclick="openModal('${p.SKU}')" 
-                            class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center mx-auto shadow-sm">
-                            🔍
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = data.map(p => {
+                const colorVal = p.Kolor || '';
+                // Jeśli mamy kolor łączony np "Brown/Natural", bierzemy pierwszy człon do stylizacji tła
+                const mainColor = colorVal.split('/')[0].trim();
+                const style = COLOR_MAP[mainColor] || { bg: '#f1f5f9', text: '#64748b' };
+
+                return `
+                    <tr class="hover:bg-blue-50/30 transition-colors group">
+                        <td class="p-5 font-mono text-base font-extrabold text-slate-900">${p.SKU || '---'}</td>
+                        <td class="p-5 font-semibold text-slate-800 text-sm">
+                            <div class="text-[10px] text-blue-500 uppercase font-black mb-1">${p.Produkt || ''}</div>
+                            ${p.Nazwa || 'Brak nazwy'}
+                        </td>
+                        <td class="p-5">
+                            <span class="text-[11px] font-bold px-3 py-1.5 rounded-lg border border-black/5 shadow-sm inline-block" 
+                                  style="background-color: ${style.bg}; color: ${style.text};">
+                                ${colorVal || '---'}
+                            </span>
+                        </td>
+                        <td class="p-5 text-center">
+                            <button onclick="openModal('${p.SKU}')" 
+                                class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center justify-center mx-auto shadow-sm">
+                                🔍
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function filterTable() {
@@ -201,11 +224,8 @@
             const filtered = rawData.filter(p => {
                 const matchesText = (p.SKU || '').toLowerCase().includes(txt) || 
                                     (p.Nazwa || '').toLowerCase().includes(txt);
-                
                 const matchesProduct = productVal === "" || p.Produkt === productVal;
-
                 const matchesColor = colorVal === "" || (p.Kolor && p.Kolor.toLowerCase().includes(colorVal.toLowerCase()));
-
                 return matchesText && matchesProduct && matchesColor;
             });
 
