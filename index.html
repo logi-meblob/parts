@@ -52,8 +52,13 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/50 border-b border-slate-100 text-[11px] uppercase font-black text-slate-400 tracking-wider">
-                            <th class="p-5 cursor-pointer hover:text-blue-600 transition w-32" onclick="sortBySKU()">
-                                SKU <span id="sortIcon">↕</span>
+                            <th class="p-5 w-40">
+                                <div class="flex items-center gap-2">
+                                    <span>SKU</span>
+                                    <button onclick="sortBySKU()" class="w-6 h-6 rounded-md bg-slate-900 text-white flex items-center justify-center shadow-md hover:bg-slate-700 transition">
+                                        <span id="sortIcon" class="text-xs">↕</span>
+                                    </button>
+                                </div>
                             </th>
                             <th class="p-5">Pełna nazwa z systemu</th>
                             <th class="p-5">Kolor</th>
@@ -124,7 +129,6 @@
             const pSelect = document.getElementById('productSelect');
             const cSelect = document.getElementById('colorSelect');
 
-            // Unikalne Produkty
             const products = [...new Set(data.map(item => item.Produkt).filter(Boolean))].sort();
             products.forEach(p => {
                 const opt = document.createElement('option');
@@ -133,11 +137,9 @@
                 pSelect.appendChild(opt);
             });
 
-            // Unikalne Pojedyncze Kolory (obsługa kolorów łączonych przez /)
             let allColors = new Set();
             data.forEach(item => {
                 if (item.Kolor) {
-                    // Rozbijamy kolory typu "Grey/Dark Grey" na osobne składniki
                     item.Kolor.split('/').forEach(c => allColors.add(c.trim()));
                 }
             });
@@ -153,7 +155,10 @@
 
         function sortBySKU() {
             skuAsc = !skuAsc;
-            document.getElementById('sortIcon').innerText = skuAsc ? "↑" : "↓";
+            const sortIcon = document.getElementById('sortIcon');
+            // Zmiana ikony na strzałkę góra/dół
+            sortIcon.innerText = skuAsc ? "↑" : "↓";
+            
             rawData.sort((a, b) => {
                 const skuA = (a.SKU || "").toString();
                 const skuB = (b.SKU || "").toString();
@@ -168,7 +173,7 @@
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = data.map(p => `
                 <tr class="hover:bg-blue-50/30 transition-colors group">
-                    <td class="p-5 font-mono text-xs font-bold text-slate-500">${p.SKU || '---'}</td>
+                    <td class="p-5 font-mono text-base font-extrabold text-slate-900">${p.SKU || '---'}</td>
                     <td class="p-5 font-semibold text-slate-800 text-sm">
                         <div class="text-[10px] text-blue-500 uppercase font-black mb-1">${p.Produkt || ''}</div>
                         ${p.Nazwa || 'Brak nazwy'}
@@ -199,7 +204,6 @@
                 
                 const matchesProduct = productVal === "" || p.Produkt === productVal;
 
-                // Logika "includes" pozwala znaleźć np. "Anthracite" w "Grey/Anthracite"
                 const matchesColor = colorVal === "" || (p.Kolor && p.Kolor.toLowerCase().includes(colorVal.toLowerCase()));
 
                 return matchesText && matchesProduct && matchesColor;
