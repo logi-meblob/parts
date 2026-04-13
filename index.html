@@ -22,10 +22,15 @@
     <div class="max-w-5xl mx-auto">
         <div class="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                    <h1 class="text-3xl font-black text-[#1e3a8a]">Katalog Produktów</h1>
-                    <div id="statusInfo" class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-2 bg-green-50 px-3 py-1 rounded-full inline-block">
-                        Wczytywanie...
+                <div class="flex items-center gap-4">
+                    <a href="https://logi-meblob.github.io/main/" class="flex items-center justify-center w-12 h-12 bg-slate-50 hover:bg-blue-600 hover:text-white text-blue-900 rounded-2xl border border-slate-100 transition-all group shadow-sm">
+                        <span class="text-2xl group-hover:-translate-x-1 transition-transform">←</span>
+                    </a>
+                    <div>
+                        <h1 class="text-3xl font-black text-[#1e3a8a]">Katalog Produktów</h1>
+                        <div id="statusInfo" class="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-2 bg-green-50 px-3 py-1 rounded-full inline-block">
+                            Wczytywanie...
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,7 +184,6 @@
                 const colorVal = p.Kolor || '';
                 const mainColor = colorVal.split('/')[0].trim();
                 const style = COLOR_MAP[mainColor] || { bg: '#f1f5f9', text: '#64748b' };
-
                 return `
                     <tr class="hover:bg-blue-50/30 transition-colors group">
                         <td class="p-5 font-mono text-lg font-black text-[#1e3a8a] tracking-tight">${p.SKU || '---'}</td>
@@ -208,10 +212,8 @@
             const txt = document.getElementById('searchInput').value.toLowerCase();
             const productVal = document.getElementById('productSelect').value;
             const colorVal = document.getElementById('colorSelect').value;
-
             const filtered = rawData.filter(p => {
-                const matchesText = (p.SKU || '').toLowerCase().includes(txt) || 
-                                    (p.Nazwa || '').toLowerCase().includes(txt);
+                const matchesText = (p.SKU || '').toLowerCase().includes(txt) || (p.Nazwa || '').toLowerCase().includes(txt);
                 const matchesProduct = productVal === "" || p.Produkt === productVal;
                 const matchesColor = colorVal === "" || (p.Kolor && p.Kolor.toLowerCase().includes(colorVal.toLowerCase()));
                 return matchesText && matchesProduct && matchesColor;
